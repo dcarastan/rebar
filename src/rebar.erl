@@ -214,6 +214,12 @@ run_aux(BaseConfig, Commands) ->
         {error,{already_started,crypto}} -> ok
     end,
 
+    %% Make sure memoization server is running
+    case rmemo:start() of
+        {ok, _} -> ok;
+        {error, {already_started, _}} -> ok
+    end,
+
     %% Convert command strings to atoms
     CommandAtoms = [list_to_atom(C) || C <- Commands],
 
@@ -450,11 +456,17 @@ eunit       [suite[s]=foo]               Run EUnit tests in foo.erl and
             [random_suite_order=Seed]    with a random seed for the PRNG, or a
                                          specific one.
 
-ct          [suite[s]=] [case=]          Run common_test suites
+ct          [suite[s]= [group[s]= [case[s]=]]] Run common_test suites
 
 qc                                       Test QuickCheck properties
 
 xref                                     Run cross reference analysis
+
+dialyze                                  Analyze the code for discrepancies
+build-plt                                Build project-specific PLT
+check-plt                                Check the PLT for consistency and
+                                         rebuild it if it is not up-to-date
+delete-plt                               Delete project-specific PLT
 
 shell                                    Start a shell similar to
                                          'erl -pa ebin -pa deps/*/ebin'
@@ -527,7 +539,9 @@ filter_flags(Config, [Item | Rest], Commands) ->
 
 command_names() ->
     [
+     "build-plt",
      "check-deps",
+     "check-plt",
      "clean",
      "compile",
      "create",
@@ -535,7 +549,9 @@ command_names() ->
      "create-lib",
      "create-node",
      "ct",
+     "delete-plt",
      "delete-deps",
+     "dialyze",
      "doc",
      "eunit",
      "escriptize",
